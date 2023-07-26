@@ -28,6 +28,8 @@ from lightgbm import LGBMClassifier
 
 import tqdm
 
+from sklearn.utils.class_weight import compute_class_weight
+
 
 # In[4]:
 
@@ -78,11 +80,11 @@ df['classes'] = df['trip type'].replace(replace_classes)
 
 models = {
             
-            'LightGBM': LGBMClassifier(),
-            'SVM': SVC(C=8.000e+00, kernel='linear'),
-            'RF': RandomForestClassifier(class_weight='balanced'),
-            'GB': GradientBoostingClassifier(),
-            'XGBoost': XGBClassifier(),
+            'LightGBM': LGBMClassifier(class_weight='balanced'),
+            'SVM': SVC(C=8.000e+00, kernel='linear', class_weight='balanced'),
+            'RF': RandomForestClassifier(max_depth=5, n_jobs=5, class_weight='balanced'),
+            'GB': GradientBoostingClassifier(n_estimators=10, max_depth=3),
+            'XGBoost': XGBClassifier(n_jobs=5),
             'LogisticRegression': LogisticRegression(class_weight='balanced')
         
          }
@@ -93,15 +95,49 @@ models = {
 
 complete_results = []
 
+sample_weight = compute_class_weight(class_weight='balanced', classes=df['classes'].unique(), y=df['classes'])
+
+for label, class_name in enumerate(df['classes'].unique()):
+
+    df.loc[df['classes'] == class_name, 'class_weight'] = sample_weight[label]
+
 for model_name, model in tqdm.tqdm(models.items()):
 
     print("Model - ", model_name)
-    
-    model_results = cross_validate(model,
-                                   X, df['classes'],
-                                   cv=5,
-                                   scoring=('f1_micro', 'f1_macro'),
-                                   n_jobs=5)
+
+    error = False
+
+    if model.isin(['XGBoost', 'GB']):
+
+
+        try:
+
+            model_results = cross_validate(model,
+                                       X, df['classes'],
+                                       cv=5,
+                                       scoring=('f1_micro', 'f1_macro'),
+                                       n_jobs=5,
+                                       fit_params={'sample_weight': df['class_weight'].values})
+
+
+            model =+ ' Balanced'
+
+        except:
+
+            error = True
+
+
+
+    if (~model.isin(['XGBoost', 'GB'])) or error = True:
+
+
+        model_results = cross_validate(model,
+                                       X, df['classes'],
+                                       cv=5,
+                                       scoring=('f1_micro', 'f1_macro'),
+                                       n_jobs=5)
+
+
 
     df_results = pd.DataFrame(model_results)
 
