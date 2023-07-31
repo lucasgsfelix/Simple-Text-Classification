@@ -81,7 +81,7 @@ df['classes'] = df['trip type'].replace(replace_classes)
 models = {
             
             'LightGBM': LGBMClassifier(class_weight='balanced'),
-            'SVM': SVC(C=8.000e+00, kernel='linear', class_weight='balanced'),
+            #'SVM': SVC(C=8.000e+00, kernel='linear', class_weight='balanced'),
             'RF': RandomForestClassifier(max_depth=5, n_jobs=5, class_weight='balanced'),
             'GB': GradientBoostingClassifier(n_estimators=10, max_depth=3),
             'XGBoost': XGBClassifier(n_jobs=5),
