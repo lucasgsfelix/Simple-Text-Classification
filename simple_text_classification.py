@@ -77,29 +77,48 @@ df['classes'] = df['trip type'].replace(replace_classes)
 
 # In[44]:
 
+balanced = False
 
-models = {
+
+if balanced == True:
+
+    models = {
+                
+                'LightGBM': LGBMClassifier(class_weight='balanced'),
+                'SVM': SVC(C=8.000e+00, kernel='linear', class_weight='balanced'),
+                'RF': RandomForestClassifier(max_depth=5, n_jobs=5, class_weight='balanced'),
+                'GB': GradientBoostingClassifier(n_estimators=10, max_depth=3),
+                'XGBoost': XGBClassifier(n_jobs=5),
+                'LogisticRegression': LogisticRegression(class_weight='balanced')
             
-            'LightGBM': LGBMClassifier(class_weight='balanced'),
-            #'SVM': SVC(C=8.000e+00, kernel='linear', class_weight='balanced'),
-            'RF': RandomForestClassifier(max_depth=5, n_jobs=5, class_weight='balanced'),
-            'GB': GradientBoostingClassifier(n_estimators=10, max_depth=3),
-            'XGBoost': XGBClassifier(n_jobs=5),
-            'LogisticRegression': LogisticRegression(class_weight='balanced')
-        
-         }
+             }
 
 
-# In[45]:
+    # In[45]:
+
+    sample_weight = compute_class_weight(class_weight='balanced', classes=df['classes'].unique(), y=df['classes'])
+
+    for label, class_name in enumerate(df['classes'].unique()):
+
+        df.loc[df['classes'] == class_name, 'class_weight'] = sample_weight[label]
+
+else:
+
+    df['class_weight'] = 1
+
+    models = {
+                
+                'LightGBM': LGBMClassifier(),
+                #'SVM': SVC(C=8.000e+00, kernel='linear'),
+                'RF': RandomForestClassifier(max_depth=5, n_jobs=5),
+                'GB': GradientBoostingClassifier(n_estimators=10, max_depth=3),
+                'XGBoost': XGBClassifier(n_jobs=5),
+                'LogisticRegression': LogisticRegression()
+            
+             }
 
 
 complete_results = []
-
-sample_weight = compute_class_weight(class_weight='balanced', classes=df['classes'].unique(), y=df['classes'])
-
-for label, class_name in enumerate(df['classes'].unique()):
-
-    df.loc[df['classes'] == class_name, 'class_weight'] = sample_weight[label]
 
 
 for model_name, model in tqdm.tqdm(models.items()):
@@ -146,6 +165,7 @@ for model_name, model in tqdm.tqdm(models.items()):
     
     complete_results.append(df_results)
 
+
 # In[46]:
 
 
@@ -155,5 +175,10 @@ df_complete = pd.concat(complete_results)
 # In[47]:
 
 
-df_complete.to_csv("trip_advisor_general_models_results.csv", sep=';', index=False)
+if balanced == True:
 
+    df_complete.to_csv("TripAdvisor_balanced.csv", sep=';', index=False)
+
+else:
+
+    df_complete.to_csv("TripAdvisor_unbalanced.csv", sep=';', index=False)
