@@ -101,13 +101,14 @@ for label, class_name in enumerate(df['classes'].unique()):
 
     df.loc[df['classes'] == class_name, 'class_weight'] = sample_weight[label]
 
+
 for model_name, model in tqdm.tqdm(models.items()):
 
     print("Model - ", model_name)
 
     error = False
 
-    if model.isin(['XGBoost', 'GB']):
+    if model in ['XGBoost', 'GB']:
 
 
         try:
@@ -128,7 +129,7 @@ for model_name, model in tqdm.tqdm(models.items()):
 
 
 
-    if (~model.isin(['XGBoost', 'GB'])) or error = True:
+    if not (model in (['XGBoost', 'GB'])) or error == True:
 
 
         model_results = cross_validate(model,
@@ -144,7 +145,6 @@ for model_name, model in tqdm.tqdm(models.items()):
     df_results['model'] = model_name
     
     complete_results.append(df_results)
-
 
 # In[46]:
 
