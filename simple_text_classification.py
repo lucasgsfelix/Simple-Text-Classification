@@ -151,7 +151,7 @@ for model_name, model in tqdm.tqdm(models.items()):
     if not (model in (['XGBoost', 'GB'])) or error == True:
 
 
-        model_results = cross_validate(model,
+        model_results = cross_validate(model_name,
                                        X, df['classes'],
                                        cv=5,
                                        scoring=('f1_micro', 'f1_macro'),
